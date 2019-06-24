@@ -1,12 +1,12 @@
 # Glow
 
-This repository implements the [Glow](https://arxiv.org/abs/1807.03039) model using PyTorch on the CIFAR and SVHN dataset. We use the trained Glow to reproduce some of the results of the paper ["Do Deep Generative Models Know What They Don't Know?"](https://arxiv.org/abs/1810.09136):
+This repository implements the [Glow](https://arxiv.org/abs/1807.03039) model using PyTorch on the CIFAR-10 and SVHN dataset. We use the trained Glow to reproduce some of the results of the paper ["Do Deep Generative Models Know What They Don't Know?"](https://arxiv.org/abs/1810.09136):
 
 ![Histogram Glow - CIFAR10 and SVHN](images/histogram_glow_cifar_svhn.png)
 
-See the [notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb) for code and you can download a pretrained model [here](http://www.cs.ox.ac.uk/people/joost.vanamersfoort/glow.zip). Note this pretrained model was created using the `affine` coupling layer, so it does not work well for sampling (see qualitative vs quantitative models in the Glow paper). The pretrained model achieves 3.39 bpd, the difference with the paper is that it was trained using batch size 64 instead of 512.
+See the [notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb) for code and you can download a pretrained model that was used to create this graph [here](http://www.cs.ox.ac.uk/people/joost.vanamersfoort/glow.zip). Note this pretrained model was created using the `affine` coupling layer, so it does not work well for sampling (see qualitative vs quantitative models in the Glow paper). The pretrained model achieves 3.39 bpd, while the original paper gets 3.35. The difference between our pretrained model and the paper is that we use batch size 64 (single GPU) and the paper uses 512 (8 GPU).
 
-The code uses modules and groundwork from [glow-pytorch](https://github.com/chaiyujin/glow-pytorch), but is more modular, extendable, faster, easier to read and supports training on CIFAR-10 and SVHN. There are fewer dependencies and a consistent interface for new datasets. Thanks to [Milad](https://github.com/mi-lad) for comments and help with debugging.
+The code uses layers and groundwork from [glow-pytorch](https://github.com/chaiyujin/glow-pytorch), but is more modular, extendable, faster, easier to read and supports training on CIFAR-10 and SVHN. There are fewer dependencies and a consistent interface for new datasets. Thanks to [Milad](https://github.com/mi-lad) for comments and help with debugging.
 
 ## Setup and run
 
