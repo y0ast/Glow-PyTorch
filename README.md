@@ -4,19 +4,29 @@ This repository implements the [Glow](https://arxiv.org/abs/1807.03039) model us
 
 ![Histogram Glow - CIFAR10 and SVHN](images/histogram_glow_cifar_svhn.png)
 
-See the [notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb) for code and you can download a pretrained model that was used to create this graph [here](http://www.cs.ox.ac.uk/people/joost.vanamersfoort/glow.zip). Note this pretrained model was created using the `affine` coupling layer, so it does not work well for sampling (see qualitative vs quantitative models in the Glow paper). The pretrained model achieves 3.39 bpd, while the original paper gets 3.35. The difference between our pretrained model and the paper is that we use batch size 64 (single GPU) and the paper uses 512 (8 GPU).
+To create histogram:
+See [notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb)  
+Pretrained model (on CIFAR-10): [download](http://www.cs.ox.ac.uk/people/joost.vanamersfoort/glow.zip) (unzip before use).
 
-The code uses layers and groundwork from [glow-pytorch](https://github.com/chaiyujin/glow-pytorch), but is more modular, extendable, faster, easier to read and supports training on CIFAR-10 and SVHN. There are fewer dependencies and a consistent interface for new datasets. Thanks to [Milad](https://github.com/mi-lad) for comments and help with debugging.
+Note this pretrained model was created using the `affine` coupling layer, so it does not work well for generative sampling (see qualitative vs quantitative models in the Glow paper). The pretrained model achieves 3.39 bpd, while the original paper gets 3.35. The difference between our pretrained model and the paper is that we use batch size 64 (single GPU) and the paper uses 512 (8 GPU).
+
+This code uses some layers and groundwork from [glow-pytorch](https://github.com/chaiyujin/glow-pytorch), but is more modular, extendable, faster, easier to read and supports training on CIFAR-10 and SVHN. There are fewer dependencies and a consistent interface for new datasets. Thanks to [Milad](https://github.com/mi-lad) for comments and help with debugging.
 
 ## Setup and run
 
 The code has minimal dependencies. You need python 3.6+ and up to date versions of:
 
 ```
-torch (tested on 1.1.0)
+pytorch (tested on 1.1.0)
 torchvision
 pytorch-ignite
 tqdm
+```
+
+To install in a local conda:
+
+```
+conda install pytorch torchvision pytorch-ignite tqdm -c pytorch
 ```
 
 To train your own model:
@@ -25,7 +35,7 @@ To train your own model:
 python train.py --download
 ```
 
-Will download the CIFAR10 dataset for you, and start training. The defaults are tested on a `1080Ti`, this is a memory hungry model and it might be necessary to tune down the model size for your specific GPU. The output files will be send to `output/`.
+Will download the CIFAR10 dataset for you, and start training. The defaults are tested on a `1080Ti`, Glow is a memory hungry model and it might be necessary to tune down the model size for your specific GPU. The output files will be send to `output/`.
 
 Everything is configurable through command line arguments, see
 
