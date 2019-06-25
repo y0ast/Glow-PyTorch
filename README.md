@@ -4,7 +4,7 @@ This repository implements the [Glow](https://arxiv.org/abs/1807.03039) model us
 
 ![Histogram Glow - CIFAR10 and SVHN](images/histogram_glow_cifar_svhn.png)
 
-To create histogram:  
+**To create histogram**:  
 See [notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb).   
 Pretrained model (on CIFAR-10): [download](http://www.cs.ox.ac.uk/people/joost.vanamersfoort/glow.zip) (unzip before use).
 
@@ -29,7 +29,7 @@ To install in a local conda:
 conda install pytorch torchvision pytorch-ignite tqdm -c pytorch
 ```
 
-To train your own model:
+**To train your own model:**
 
 ```
 python train.py --download
@@ -49,7 +49,7 @@ for what is possible.
 
 There are two notebooks available for evaluation:
 
-* The [first notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb) reproduces a plot from "Do Deep Generative models know what they don't know?" (see above) and computes the average BpD on the CIFAR-10 and SVHN test sets.
+* The [first notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb) reproduces a plot from "Do Deep Generative models know what they don't know?" (see above) and computes the average bpd on the CIFAR-10 and SVHN test sets.
 * The [second notebook](Sample_from_Glow.ipynb) allows you to visualise samples from the model (This works best with a model trained using the `additive` coupling layer).
 
 
