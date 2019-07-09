@@ -1,6 +1,8 @@
 from pathlib import Path
 
 import torch
+import torch.nn.functional as F
+
 from torchvision import transforms, datasets
 
 n_bits = 8
@@ -27,15 +29,6 @@ def postprocess(x):
     return torch.clamp(x, 0, 255).byte()
 
 
-def get_one_hot_encode(num_classes):
-    def one_hot_encode(y):
-        y_onehot = torch.zeros(num_classes)
-        y_onehot[y] = 1
-        return y_onehot
-
-    return one_hot_encode
-
-
 def get_CIFAR10(augment, dataroot, download):
     image_shape = (32, 32, 3)
     num_classes = 10
@@ -52,7 +45,7 @@ def get_CIFAR10(augment, dataroot, download):
 
     train_transform = transforms.Compose(transformations)
 
-    one_hot_encode = get_one_hot_encode(num_classes)
+    one_hot_encode = lambda target: F.one_hot(torch.tensor(target), num_classes)
 
     path = Path(dataroot) / 'data' / 'CIFAR10'
     train_dataset = datasets.CIFAR10(path, train=True,
