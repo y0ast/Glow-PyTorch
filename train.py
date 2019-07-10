@@ -76,7 +76,7 @@ def main(dataset, dataroot, download, augment, batch_size, eval_batch_size,
          flow_permutation, flow_coupling, LU_decomposed, learn_top,
          y_condition, y_weight, max_grad_clip, max_grad_norm, lr,
          n_workers, cuda, n_init_batches, warmup_steps, output_dir,
-         saved_optimizer, fresh):
+         saved_optimizer, warmup, fresh):
 
     device = 'cpu' if (not torch.cuda.is_available() or not cuda) else 'cuda:0'
 
@@ -101,6 +101,9 @@ def main(dataset, dataroot, download, augment, batch_size, eval_batch_size,
 
     model = model.to(device)
     optimizer = optim.Adamax(model.parameters(), lr=lr, weight_decay=5e-5)
+
+    lr_lambda = lambda epoch: lr * min(1., epoch / warmup)
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
 
     def step(engine, batch):
         model.train()
@@ -214,6 +217,8 @@ def main(dataset, dataroot, download, augment, batch_size, eval_batch_size,
     @trainer.on(Events.EPOCH_COMPLETED)
     def evaluate(engine):
         evaluator.run(test_loader)
+
+        scheduler.step()
         metrics = evaluator.state.metrics
 
         losses = ', '.join([f"{key}: {value:.2f}" for key, value in metrics.items()])
@@ -315,6 +320,10 @@ if __name__ == '__main__':
                         type=float, default=5e-4,
                         help='initial learning rate')
 
+    parser.add_argument('--warmup',
+                        type=float, default=5,
+                        help='Warmup learning rate linearly per epoch')
+
     parser.add_argument('--warmup_steps',
                         type=int, default=4000,
                         help='Number of warmup steps for lr initialisation')
@@ -338,11 +347,11 @@ if __name__ == '__main__':
 
     parser.add_argument('--saved_model',
                         default='',
-                        help='Path to model to load')
+                        help='Path to model to load for continuing training')
 
     parser.add_argument('--saved_optimizer',
                         default='',
-                        help='Path to optimizer to load')
+                        help='Path to optimizer to load for continuing training')
 
     parser.add_argument('--seed',
                         type=int, default=0,
