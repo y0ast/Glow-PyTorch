@@ -142,9 +142,9 @@ def main(
     )
 
     model = model.to(device)
-    optimizer = optim.Adamax(model.parameters(), lr=lr, weight_decay=5e-5)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=5e-5)
 
-    lr_lambda = lambda epoch: lr * min(1.0, epoch / warmup)  # noqa
+    lr_lambda = lambda epoch: min(1.0, (epoch + 1) / warmup)  # noqa
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
 
     def step(engine, batch):
@@ -406,7 +406,7 @@ if __name__ == "__main__":
         "--epochs", type=int, default=250, help="number of epochs to train for"
     )
 
-    parser.add_argument("--lr", type=float, default=5e-4, help="Initial learning rate")
+    parser.add_argument("--lr", type=float, default=5e-4, help="Learning rate")
 
     parser.add_argument(
         "--warmup",
