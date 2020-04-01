@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from utils import split_feature, pixels, compute_same_pad
+from utils import split_feature, compute_same_pad
 
 
 def gaussian_p(mean, logs, x):

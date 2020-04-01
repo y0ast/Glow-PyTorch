@@ -15,10 +15,6 @@ def compute_same_pad(kernel_size, stride):
     return [((k - 1) * s + 1) // 2 for k, s in zip(kernel_size, stride)]
 
 
-def pixels(tensor):
-    return int(tensor.size(2) * tensor.size(3))
-
-
 def uniform_binning_correction(x, n_bits=8):
     """Replaces x^i with q^i(x) = U(x, x + 1.0 / 256.0).
 
