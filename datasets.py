@@ -14,9 +14,9 @@ def preprocess(x):
 
     x = x * 255  # undo ToTensor scaling to [0,1]
 
-    n_bins = 2**n_bits
+    n_bins = 2 ** n_bits
     if n_bits < 8:
-      x = torch.floor(x / 2 ** (8 - n_bits))
+        x = torch.floor(x / 2 ** (8 - n_bits))
     x = x / n_bins - 0.5
 
     return x
@@ -25,7 +25,7 @@ def preprocess(x):
 def postprocess(x):
     x = torch.clamp(x, -0.5, 0.5)
     x += 0.5
-    x = x * 2**n_bits
+    x = x * 2 ** n_bits
     return torch.clamp(x, 0, 255).byte()
 
 
@@ -36,8 +36,10 @@ def get_CIFAR10(augment, dataroot, download):
     test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
     if augment:
-        transformations = [transforms.RandomAffine(0, translate=(0.1, 0.1)),
-                           transforms.RandomHorizontalFlip()]
+        transformations = [
+            transforms.RandomAffine(0, translate=(0.1, 0.1)),
+            transforms.RandomHorizontalFlip(),
+        ]
     else:
         transformations = []
 
@@ -47,16 +49,22 @@ def get_CIFAR10(augment, dataroot, download):
 
     one_hot_encode = lambda target: F.one_hot(torch.tensor(target), num_classes)
 
-    path = Path(dataroot) / 'data' / 'CIFAR10'
-    train_dataset = datasets.CIFAR10(path, train=True,
-                                     transform=train_transform,
-                                     target_transform=one_hot_encode,
-                                     download=download)
+    path = Path(dataroot) / "data" / "CIFAR10"
+    train_dataset = datasets.CIFAR10(
+        path,
+        train=True,
+        transform=train_transform,
+        target_transform=one_hot_encode,
+        download=download,
+    )
 
-    test_dataset = datasets.CIFAR10(path, train=False,
-                                    transform=test_transform,
-                                    target_transform=one_hot_encode,
-                                    download=download)
+    test_dataset = datasets.CIFAR10(
+        path,
+        train=False,
+        transform=test_transform,
+        target_transform=one_hot_encode,
+        download=download,
+    )
 
     return image_shape, num_classes, train_dataset, test_dataset
 
@@ -75,15 +83,21 @@ def get_SVHN(augment, dataroot, download):
 
     one_hot_encode = lambda target: F.one_hot(torch.tensor(target), num_classes)
 
-    path = Path(dataroot) / 'data' / 'SVHN'
-    train_dataset = datasets.SVHN(path, split='train',
-                                  transform=transform,
-                                  target_transform=one_hot_encode,
-                                  download=download)
+    path = Path(dataroot) / "data" / "SVHN"
+    train_dataset = datasets.SVHN(
+        path,
+        split="train",
+        transform=transform,
+        target_transform=one_hot_encode,
+        download=download,
+    )
 
-    test_dataset = datasets.SVHN(path, split='test',
-                                 transform=transform,
-                                 target_transform=one_hot_encode,
-                                 download=download)
+    test_dataset = datasets.SVHN(
+        path,
+        split="test",
+        transform=transform,
+        target_transform=one_hot_encode,
+        download=download,
+    )
 
     return image_shape, num_classes, train_dataset, test_dataset

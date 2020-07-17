@@ -3,25 +3,42 @@ import math
 import torch
 import torch.nn as nn
 
-from modules import (Conv2d, Conv2dZeros, ActNorm2d, InvertibleConv1x1,
-                     Permute2d, LinearZeros, SqueezeLayer,
-                     Split2d, gaussian_likelihood, gaussian_sample)
+from modules import (
+    Conv2d,
+    Conv2dZeros,
+    ActNorm2d,
+    InvertibleConv1x1,
+    Permute2d,
+    LinearZeros,
+    SqueezeLayer,
+    Split2d,
+    gaussian_likelihood,
+    gaussian_sample,
+)
 from utils import split_feature, uniform_binning_correction
 
 
 def get_block(in_channels, out_channels, hidden_channels):
-    block = nn.Sequential(Conv2d(in_channels, hidden_channels),
-                          nn.ReLU(inplace=False),
-                          Conv2d(hidden_channels, hidden_channels,
-                                 kernel_size=(1, 1)),
-                          nn.ReLU(inplace=False),
-                          Conv2dZeros(hidden_channels, out_channels))
+    block = nn.Sequential(
+        Conv2d(in_channels, hidden_channels),
+        nn.ReLU(inplace=False),
+        Conv2d(hidden_channels, hidden_channels, kernel_size=(1, 1)),
+        nn.ReLU(inplace=False),
+        Conv2dZeros(hidden_channels, out_channels),
+    )
     return block
 
 
 class FlowStep(nn.Module):
-    def __init__(self, in_channels, hidden_channels, actnorm_scale,
-                 flow_permutation, flow_coupling, LU_decomposed):
+    def __init__(
+        self,
+        in_channels,
+        hidden_channels,
+        actnorm_scale,
+        flow_permutation,
+        flow_coupling,
+        LU_decomposed,
+    ):
         super().__init__()
         self.flow_coupling = flow_coupling
 
@@ -29,28 +46,26 @@ class FlowStep(nn.Module):
 
         # 2. permute
         if flow_permutation == "invconv":
-            self.invconv = InvertibleConv1x1(in_channels,
-                                             LU_decomposed=LU_decomposed)
-            self.flow_permutation = \
-                lambda z, logdet, rev: self.invconv(z, logdet, rev)
+            self.invconv = InvertibleConv1x1(in_channels, LU_decomposed=LU_decomposed)
+            self.flow_permutation = lambda z, logdet, rev: self.invconv(z, logdet, rev)
         elif flow_permutation == "shuffle":
             self.shuffle = Permute2d(in_channels, shuffle=True)
-            self.flow_permutation = \
-                lambda z, logdet, rev: (self.shuffle(z, rev), logdet)
+            self.flow_permutation = lambda z, logdet, rev: (
+                self.shuffle(z, rev),
+                logdet,
+            )
         else:
             self.reverse = Permute2d(in_channels, shuffle=False)
-            self.flow_permutation = \
-                lambda z, logdet, rev: (self.reverse(z, rev), logdet)
+            self.flow_permutation = lambda z, logdet, rev: (
+                self.reverse(z, rev),
+                logdet,
+            )
 
         # 3. coupling
         if flow_coupling == "additive":
-            self.block = get_block(in_channels // 2,
-                                   in_channels // 2,
-                                   hidden_channels)
+            self.block = get_block(in_channels // 2, in_channels // 2, hidden_channels)
         elif flow_coupling == "affine":
-            self.block = get_block(in_channels // 2,
-                                   in_channels,
-                                   hidden_channels)
+            self.block = get_block(in_channels // 2, in_channels, hidden_channels)
 
     def forward(self, input, logdet=None, reverse=False):
         if not reverse:
@@ -74,7 +89,7 @@ class FlowStep(nn.Module):
         elif self.flow_coupling == "affine":
             h = self.block(z1)
             shift, scale = split_feature(h, "cross")
-            scale = torch.sigmoid(scale + 2.)
+            scale = torch.sigmoid(scale + 2.0)
             z2 = z2 + shift
             z2 = z2 * scale
             logdet = torch.sum(torch.log(scale), dim=[1, 2, 3]) + logdet
@@ -92,7 +107,7 @@ class FlowStep(nn.Module):
         elif self.flow_coupling == "affine":
             h = self.block(z1)
             shift, scale = split_feature(h, "cross")
-            scale = torch.sigmoid(scale + 2.)
+            scale = torch.sigmoid(scale + 2.0)
             z2 = z2 / scale
             z2 = z2 - shift
             logdet = -torch.sum(torch.log(scale), dim=[1, 2, 3]) + logdet
@@ -108,9 +123,17 @@ class FlowStep(nn.Module):
 
 
 class FlowNet(nn.Module):
-    def __init__(self, image_shape, hidden_channels, K, L,
-                 actnorm_scale, flow_permutation, flow_coupling,
-                 LU_decomposed):
+    def __init__(
+        self,
+        image_shape,
+        hidden_channels,
+        K,
+        L,
+        actnorm_scale,
+        flow_permutation,
+        flow_coupling,
+        LU_decomposed,
+    ):
         super().__init__()
 
         self.layers = nn.ModuleList()
@@ -130,12 +153,15 @@ class FlowNet(nn.Module):
             # 2. K FlowStep
             for _ in range(K):
                 self.layers.append(
-                    FlowStep(in_channels=C,
-                             hidden_channels=hidden_channels,
-                             actnorm_scale=actnorm_scale,
-                             flow_permutation=flow_permutation,
-                             flow_coupling=flow_coupling,
-                             LU_decomposed=LU_decomposed))
+                    FlowStep(
+                        in_channels=C,
+                        hidden_channels=hidden_channels,
+                        actnorm_scale=actnorm_scale,
+                        flow_permutation=flow_permutation,
+                        flow_coupling=flow_coupling,
+                        LU_decomposed=LU_decomposed,
+                    )
+                )
                 self.output_shapes.append([-1, C, H, W])
 
             # 3. Split2d
@@ -144,7 +170,7 @@ class FlowNet(nn.Module):
                 self.output_shapes.append([-1, C // 2, H, W])
                 C = C // 2
 
-    def forward(self, input, logdet=0., reverse=False, temperature=None):
+    def forward(self, input, logdet=0.0, reverse=False, temperature=None):
         if reverse:
             return self.decode(input, temperature)
         else:
@@ -158,26 +184,38 @@ class FlowNet(nn.Module):
     def decode(self, z, temperature=None):
         for layer in reversed(self.layers):
             if isinstance(layer, Split2d):
-                z, logdet = layer(z, logdet=0, reverse=True,
-                                  temperature=temperature)
+                z, logdet = layer(z, logdet=0, reverse=True, temperature=temperature)
             else:
                 z, logdet = layer(z, logdet=0, reverse=True)
         return z
 
 
 class Glow(nn.Module):
-    def __init__(self, image_shape, hidden_channels, K, L, actnorm_scale,
-                 flow_permutation, flow_coupling, LU_decomposed, y_classes,
-                 learn_top, y_condition):
+    def __init__(
+        self,
+        image_shape,
+        hidden_channels,
+        K,
+        L,
+        actnorm_scale,
+        flow_permutation,
+        flow_coupling,
+        LU_decomposed,
+        y_classes,
+        learn_top,
+        y_condition,
+    ):
         super().__init__()
-        self.flow = FlowNet(image_shape=image_shape,
-                            hidden_channels=hidden_channels,
-                            K=K,
-                            L=L,
-                            actnorm_scale=actnorm_scale,
-                            flow_permutation=flow_permutation,
-                            flow_coupling=flow_coupling,
-                            LU_decomposed=LU_decomposed)
+        self.flow = FlowNet(
+            image_shape=image_shape,
+            hidden_channels=hidden_channels,
+            K=K,
+            L=L,
+            actnorm_scale=actnorm_scale,
+            flow_permutation=flow_permutation,
+            flow_coupling=flow_coupling,
+            LU_decomposed=LU_decomposed,
+        )
         self.y_classes = y_classes
         self.y_condition = y_condition
 
@@ -193,11 +231,17 @@ class Glow(nn.Module):
             self.project_ycond = LinearZeros(y_classes, 2 * C)
             self.project_class = LinearZeros(C, y_classes)
 
-        self.register_buffer("prior_h",
-                             torch.zeros([1,
-                                          self.flow.output_shapes[-1][1] * 2,
-                                          self.flow.output_shapes[-1][2],
-                                          self.flow.output_shapes[-1][3]]))
+        self.register_buffer(
+            "prior_h",
+            torch.zeros(
+                [
+                    1,
+                    self.flow.output_shapes[-1][1] * 2,
+                    self.flow.output_shapes[-1][2],
+                    self.flow.output_shapes[-1][3],
+                ]
+            ),
+        )
 
     def prior(self, data, y_onehot=None):
         if data is not None:
@@ -218,8 +262,7 @@ class Glow(nn.Module):
 
         return split_feature(h, "split")
 
-    def forward(self, x=None, y_onehot=None, z=None, temperature=None,
-                reverse=False):
+    def forward(self, x=None, y_onehot=None, z=None, temperature=None, reverse=False):
         if reverse:
             return self.reverse_flow(z, y_onehot, temperature)
         else:
@@ -241,7 +284,7 @@ class Glow(nn.Module):
             y_logits = None
 
         # Full objective - converted to bits per dimension
-        bpd = (-objective) / (math.log(2.) * c * h * w)
+        bpd = (-objective) / (math.log(2.0) * c * h * w)
 
         return z, bpd, y_logits
 
