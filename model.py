@@ -214,7 +214,7 @@ class Glow(nn.Module):
         if self.y_condition:
             assert y_onehot is not None
             yp = self.project_ycond(y_onehot)
-            h += yp.view(data.shape[0], channels, 1, 1)
+            h += yp.view(h.shape[0], channels, 1, 1)
 
         return split_feature(h, "split")
 
