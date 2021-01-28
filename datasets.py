@@ -72,6 +72,8 @@ def get_CIFAR10(augment, dataroot, download):
 def get_SVHN(augment, dataroot, download):
     image_shape = (32, 32, 3)
     num_classes = 10
+    
+    test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
     if augment:
         transformations = [transforms.RandomAffine(0, translate=(0.1, 0.1))]
@@ -95,7 +97,7 @@ def get_SVHN(augment, dataroot, download):
     test_dataset = datasets.SVHN(
         path,
         split="test",
-        transform=transform,
+        transform=test_transform,
         target_transform=one_hot_encode,
         download=download,
     )
