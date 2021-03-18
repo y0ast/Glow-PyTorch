@@ -33,8 +33,6 @@ def get_CIFAR10(augment, dataroot, download):
     image_shape = (32, 32, 3)
     num_classes = 10
 
-    test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
-
     if augment:
         transformations = [
             transforms.RandomAffine(0, translate=(0.1, 0.1)),
@@ -44,8 +42,9 @@ def get_CIFAR10(augment, dataroot, download):
         transformations = []
 
     transformations.extend([transforms.ToTensor(), preprocess])
-
     train_transform = transforms.Compose(transformations)
+
+    test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
     one_hot_encode = lambda target: F.one_hot(torch.tensor(target), num_classes)
 
@@ -72,8 +71,6 @@ def get_CIFAR10(augment, dataroot, download):
 def get_SVHN(augment, dataroot, download):
     image_shape = (32, 32, 3)
     num_classes = 10
-    
-    test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
     if augment:
         transformations = [transforms.RandomAffine(0, translate=(0.1, 0.1))]
@@ -81,7 +78,9 @@ def get_SVHN(augment, dataroot, download):
         transformations = []
 
     transformations.extend([transforms.ToTensor(), preprocess])
-    transform = transforms.Compose(transformations)
+    train_transform = transforms.Compose(transformations)
+
+    test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
     one_hot_encode = lambda target: F.one_hot(torch.tensor(target), num_classes)
 
@@ -89,7 +88,7 @@ def get_SVHN(augment, dataroot, download):
     train_dataset = datasets.SVHN(
         path,
         split="train",
-        transform=transform,
+        transform=train_transform,
         target_transform=one_hot_encode,
         download=download,
     )
