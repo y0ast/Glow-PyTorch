@@ -34,7 +34,6 @@ def one_hot_encode(target):
     Args: target           - the target labels to one-hot encode
     Retn: one_hot_encoding - the OHE of this tensor
     """
-    # same for both CIFAR10 ans SVHN, can be customized for later datasets
     num_classes = 10
     one_hot_encoding = F.one_hot(torch.tensor(target),num_classes)
 
