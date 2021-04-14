@@ -93,7 +93,6 @@ def get_SVHN(augment, dataroot, download):
 
     test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
-    # removed lambda function, can't be pickled
 
     path = Path(dataroot) / "data" / "SVHN"
     train_dataset = datasets.SVHN(
