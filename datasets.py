@@ -58,7 +58,6 @@ def get_CIFAR10(augment, dataroot, download):
 
     test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
-    # removed lambda function, can't be pickled
 
     path = Path(dataroot) / "data" / "CIFAR10"
     train_dataset = datasets.CIFAR10(
