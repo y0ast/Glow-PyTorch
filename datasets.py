@@ -30,7 +30,7 @@ def postprocess(x):
 
 def one_hot_encode(target):
     """
-    Desc: lambda functions can't be pickled across all platforms (dill doesn't help)
+    One hot encode with fixed 10 classes
     Args: target           - the target labels to one-hot encode
     Retn: one_hot_encoding - the OHE of this tensor
     """
