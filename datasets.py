@@ -28,6 +28,18 @@ def postprocess(x):
     x = x * 2 ** n_bits
     return torch.clamp(x, 0, 255).byte()
 
+def one_hot_encode(target):
+    """
+    Desc: lambda functions can't be pickled across all platforms (dill doesn't help)
+    Args: target           - the target labels to one-hot encode
+    Retn: one_hot_encoding - the OHE of this tensor
+    """
+    # same for both CIFAR10 ans SVHN, can be customized for later datasets
+    num_classes = 10
+    one_hot_encoding = F.one_hot(torch.tensor(target),num_classes)
+
+    return one_hot_encoding
+
 
 def get_CIFAR10(augment, dataroot, download):
     image_shape = (32, 32, 3)
@@ -46,7 +58,7 @@ def get_CIFAR10(augment, dataroot, download):
 
     test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
-    one_hot_encode = lambda target: F.one_hot(torch.tensor(target), num_classes)
+    # removed lambda function, can't be pickled
 
     path = Path(dataroot) / "data" / "CIFAR10"
     train_dataset = datasets.CIFAR10(
@@ -82,7 +94,7 @@ def get_SVHN(augment, dataroot, download):
 
     test_transform = transforms.Compose([transforms.ToTensor(), preprocess])
 
-    one_hot_encode = lambda target: F.one_hot(torch.tensor(target), num_classes)
+    # removed lambda function, can't be pickled
 
     path = Path(dataroot) / "data" / "SVHN"
     train_dataset = datasets.SVHN(
