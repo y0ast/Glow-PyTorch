@@ -166,7 +166,9 @@ class LinearZeros(nn.Module):
         self.logs = nn.Parameter(torch.zeros(out_channels))
 
     def forward(self, input):
-        output = self.linear(input)
+        input = input.cpu()
+        input = torch.FloatTensor(input.detach().numpy())
+        output = self.linear(input.cuda())
         return output * torch.exp(self.logs * self.logscale_factor)
 
 

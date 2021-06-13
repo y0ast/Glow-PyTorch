@@ -9,13 +9,14 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data as data
-
+from torch.utils.data import DataLoader
 from ignite.contrib.handlers import ProgressBar
 from ignite.engine import Engine, Events
 from ignite.handlers import ModelCheckpoint, Timer
 from ignite.metrics import RunningAverage, Loss
 
 from datasets import get_CIFAR10, get_SVHN
+from mydataset import get_CelebA_data, CelebALoader
 from model import Glow
 
 
@@ -49,22 +50,35 @@ def compute_loss(nll, reduction="mean"):
     return losses
 
 
+# def compute_loss_y(nll, y_logits, y_weight, y, multi_class, reduction="mean"):
+#     if reduction == "mean":
+#         losses = {"nll": torch.mean(nll)}
+#     elif reduction == "none":
+#         losses = {"nll": nll}
+#
+#     if multi_class:
+#         y_logits = torch.sigmoid(y_logits)
+#         loss_classes = F.binary_cross_entropy_with_logits(
+#             y_logits, y, reduction=reduction
+#         )
+#     else:
+#         loss_classes = F.cross_entropy(
+#             y_logits, torch.argmax(y, dim=1), reduction=reduction
+#         )
+#
+#     losses["loss_classes"] = loss_classes
+#     losses["total_loss"] = losses["nll"] + y_weight * loss_classes
+#
+#     return losses
+
 def compute_loss_y(nll, y_logits, y_weight, y, multi_class, reduction="mean"):
     if reduction == "mean":
         losses = {"nll": torch.mean(nll)}
     elif reduction == "none":
         losses = {"nll": nll}
-
-    if multi_class:
-        y_logits = torch.sigmoid(y_logits)
-        loss_classes = F.binary_cross_entropy_with_logits(
-            y_logits, y, reduction=reduction
-        )
-    else:
-        loss_classes = F.cross_entropy(
-            y_logits, torch.argmax(y, dim=1), reduction=reduction
-        )
-
+    y_logits = torch.sigmoid(y_logits)
+    y = y.float()
+    loss_classes = F.binary_cross_entropy_with_logits(y_logits, y)
     losses["loss_classes"] = loss_classes
     losses["total_loss"] = losses["nll"] + y_weight * loss_classes
 
@@ -106,26 +120,30 @@ def main(
 
     check_manual_seed(seed)
 
-    ds = check_dataset(dataset, dataroot, augment, download)
-    image_shape, num_classes, train_dataset, test_dataset = ds
+    # ds = check_dataset(dataset, dataroot, augment, download)
+    # image_shape, num_classes, train_dataset, test_dataset = ds
+    image_shape = (64,64,3)
+    num_classes = 40
 
     # Note: unsupported for now
     multi_class = False
 
-    train_loader = data.DataLoader(
-        train_dataset,
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=n_workers,
-        drop_last=True,
-    )
-    test_loader = data.DataLoader(
-        test_dataset,
-        batch_size=eval_batch_size,
-        shuffle=False,
-        num_workers=n_workers,
-        drop_last=False,
-    )
+    # train_loader = data.DataLoader(
+    #     train_dataset,
+    #     batch_size=batch_size,
+    #     shuffle=True,
+    #     num_workers=n_workers,
+    #     drop_last=True,
+    # )
+    dataset_train = CelebALoader(root_folder=args.dataroot) #'/home/yellow/deep-learning-and-practice/hw7/dataset/task_2/'
+    train_loader = DataLoader(dataset_train,batch_size=args.batch_size,shuffle=True,drop_last=True)
+    # test_loader = data.DataLoader(
+    #     test_dataset,
+    #     batch_size=eval_batch_size,
+    #     shuffle=False,
+    #     num_workers=n_workers,
+    #     drop_last=False,
+    # )
 
     model = Glow(
         image_shape,
@@ -156,6 +174,7 @@ def main(
 
         if y_condition:
             y = y.to(device)
+
             z, nll, y_logits = model(x, y)
             losses = compute_loss_y(nll, y_logits, y_weight, y, multi_class)
         else:

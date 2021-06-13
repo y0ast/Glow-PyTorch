@@ -12,6 +12,11 @@ Note this pretrained model was created using the `affine` coupling layer, so it 
 
 This code uses some layers and groundwork from [glow-pytorch](https://github.com/chaiyujin/glow-pytorch), but is more modular, extendable, faster, easier to read and supports training on CIFAR-10 and SVHN. There are fewer dependencies and a consistent interface for new datasets. Thanks to [Milad](https://github.com/mi-lad) for comments and help with debugging.
 
+
+## Start HW7 training
+`source run_hw7_NF.sh`
+
+
 ## Setup and run
 
 The code has minimal dependencies. You need python 3.6+ and up to date versions of:
