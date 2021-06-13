@@ -15,7 +15,7 @@ __pycache__/
 # C extensions
 *.so
 *.pptx#
-
+*logs/
 
 data/
 

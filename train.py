@@ -28,15 +28,15 @@ def check_manual_seed(seed):
     print("Using seed: {seed}".format(seed=seed))
 
 
-def check_dataset(dataset, dataroot, augment, download):
-    if dataset == "cifar10":
-        cifar10 = get_CIFAR10(augment, dataroot, download)
-        input_size, num_classes, train_dataset, test_dataset = cifar10
-    if dataset == "svhn":
-        svhn = get_SVHN(augment, dataroot, download)
-        input_size, num_classes, train_dataset, test_dataset = svhn
-
-    return input_size, num_classes, train_dataset, test_dataset
+# def check_dataset(dataset, dataroot, augment, download):
+#     if dataset == "cifar10":
+#         cifar10 = get_CIFAR10(augment, dataroot, download)
+#         input_size, num_classes, train_dataset, test_dataset = cifar10
+#     if dataset == "svhn":
+#         svhn = get_SVHN(augment, dataroot, download)
+#         input_size, num_classes, train_dataset, test_dataset = svhn
+#
+#     return input_size, num_classes, train_dataset, test_dataset
 
 
 def compute_loss(nll, reduction="mean"):
@@ -126,7 +126,7 @@ def main(
     num_classes = 40
 
     # Note: unsupported for now
-    multi_class = False
+    multi_class = True #It's True but this variable doesn't be used now
 
     # train_loader = data.DataLoader(
     #     train_dataset,
@@ -227,26 +227,26 @@ def main(
         trainer, "total_loss"
     )
 
-    evaluator = Engine(eval_step)
-
-    # Note: replace by https://github.com/pytorch/ignite/pull/524 when released
-    Loss(
-        lambda x, y: torch.mean(x),
-        output_transform=lambda x: (
-            x["total_loss"],
-            torch.empty(x["total_loss"].shape[0]),
-        ),
-    ).attach(evaluator, "total_loss")
-
-    if y_condition:
-        monitoring_metrics.extend(["nll"])
-        RunningAverage(output_transform=lambda x: x["nll"]).attach(trainer, "nll")
-
-        # Note: replace by https://github.com/pytorch/ignite/pull/524 when released
-        Loss(
-            lambda x, y: torch.mean(x),
-            output_transform=lambda x: (x["nll"], torch.empty(x["nll"].shape[0])),
-        ).attach(evaluator, "nll")
+    # evaluator = Engine(eval_step)
+    #
+    # # Note: replace by https://github.com/pytorch/ignite/pull/524 when released
+    # Loss(
+    #     lambda x, y: torch.mean(x),
+    #     output_transform=lambda x: (
+    #         x["total_loss"],
+    #         torch.empty(x["total_loss"].shape[0]),
+    #     ),
+    # ).attach(evaluator, "total_loss")
+    #
+    # if y_condition:
+    #     monitoring_metrics.extend(["nll"])
+    #     RunningAverage(output_transform=lambda x: x["nll"]).attach(trainer, "nll")
+    #
+    #     # Note: replace by https://github.com/pytorch/ignite/pull/524 when released
+    #     Loss(
+    #         lambda x, y: torch.mean(x),
+    #         output_transform=lambda x: (x["nll"], torch.empty(x["nll"].shape[0])),
+    #     ).attach(evaluator, "nll")
 
     pbar = ProgressBar()
     pbar.attach(trainer, metric_names=monitoring_metrics)
@@ -290,32 +290,32 @@ def main(
 
             model(init_batches, init_targets)
 
-    @trainer.on(Events.EPOCH_COMPLETED)
-    def evaluate(engine):
-        evaluator.run(test_loader)
+    # @trainer.on(Events.EPOCH_COMPLETED)
+    # def evaluate(engine):
+    #     evaluator.run(test_loader)
+    #
+    #     scheduler.step()
+    #     metrics = evaluator.state.metrics
+    #
+    #     losses = ", ".join([f"{key}: {value:.2f}" for key, value in metrics.items()])
+    #
+    #     print(f"Validation Results - Epoch: {engine.state.epoch} {losses}")
+    #
+    # timer = Timer(average=True)
+    # timer.attach(
+    #     trainer,
+    #     start=Events.EPOCH_STARTED,
+    #     resume=Events.ITERATION_STARTED,
+    #     pause=Events.ITERATION_COMPLETED,
+    #     step=Events.ITERATION_COMPLETED,
+    # )
 
-        scheduler.step()
-        metrics = evaluator.state.metrics
-
-        losses = ", ".join([f"{key}: {value:.2f}" for key, value in metrics.items()])
-
-        print(f"Validation Results - Epoch: {engine.state.epoch} {losses}")
-
-    timer = Timer(average=True)
-    timer.attach(
-        trainer,
-        start=Events.EPOCH_STARTED,
-        resume=Events.ITERATION_STARTED,
-        pause=Events.ITERATION_COMPLETED,
-        step=Events.ITERATION_COMPLETED,
-    )
-
-    @trainer.on(Events.EPOCH_COMPLETED)
-    def print_times(engine):
-        pbar.log_message(
-            f"Epoch {engine.state.epoch} done. Time per batch: {timer.value():.3f}[s]"
-        )
-        timer.reset()
+    # @trainer.on(Events.EPOCH_COMPLETED)
+    # def print_times(engine):
+    #     pbar.log_message(
+    #         f"Epoch {engine.state.epoch} done. Time per batch: {timer.value():.3f}[s]"
+    #     )
+    #     timer.reset()
 
     trainer.run(train_loader, epochs)
 
