@@ -28,7 +28,27 @@ from ignite.metrics import RunningAverage, Loss
 from datasets import get_CIFAR10, get_SVHN
 from mydataset import get_CelebA_data, CelebALoader
 from model import Glow
-from utils import save_image
+
+def compute_nll(dataset, model, dataloader):
+    # dataloader = torch.utils.data.DataLoader(dataset, batch_size=64, num_workers=6)
+
+    nlls = []
+    iter = 0
+    for x,y in dataloader:
+        iter += 1
+        x = x.to(device)
+
+        if hparams['y_condition']:
+            y = y.to(device)
+        else:
+            y = None
+
+        with torch.no_grad():
+            _, nll, _ = model(x, y_onehot=y)  # return: z, bpd, y_logits
+            nlls.append(nll)
+        print(iter)
+
+    return torch.cat(nlls).cpu()
 
 
 if __name__ == "__main__":
@@ -40,6 +60,9 @@ if __name__ == "__main__":
     with open(output_folder + 'hparams.json') as json_file:
         hparams = json.load(json_file)
 
+
+    # image_shape, num_classes, _, test_cifar = get_CIFAR10(hparams['augment'], hparams['dataroot'], True)
+    # image_shape, num_classes, _, test_svhn = get_SVHN(hparams['augment'], hparams['dataroot'], True)
     image_shape = (64,64,3)
     num_classes = 40
     dataset_test = CelebALoader(root_folder=hparams['dataroot']) #'/home/yellow/deep-learning-and-practice/hw7/dataset/task_2/'
@@ -51,19 +74,19 @@ if __name__ == "__main__":
 
     model.load_state_dict(torch.load(output_folder + model_name, map_location="cpu")['model'])
     model.set_actnorm_init()
+
     model = model.to(device)
+
     model = model.eval()
 
-    for x,y in test_loader:
-        x = x.to(device)
-        y = y.to(device)
-        with torch.no_grad():
-            z, bpd, y_logits = model(x, y_onehot=y)  # return: z, bpd, y_logits
-            predict_x = model(y_onehot=y, z=z, temperature=1, reverse=True)
-        break
-    # print('z=',z,'bpd=', bpd,'y_logits', y_logits)
 
-    print('x=', predict_x)
-    print(predict_x.size())
-    save_image(x, 'origin_x.png')
-    save_image(predict_x, 'predict_x.png')
+    nll = compute_nll(dataset_test, model, test_loader)
+    print("NLL", torch.mean(nll))
+
+
+    plt.figure(figsize=(20,10))
+    plt.title("Histogram Glow ")
+    plt.xlabel("Negative bits per dimension")
+    plt.hist(-nll.numpy(), label="SMILE", density=True, bins=50)
+    plt.legend()
+    plt.show()

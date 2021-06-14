@@ -8,5 +8,3 @@ python3 train.py --y_condition --output_dir $LOG \
                   --K 6 \
                   --L 3 \
                   # --saved_model 0614_2101_logs/glow_checkpoint_937.pt \
-
-cp run_hw7_NF.sh $LOG/runs_hw7_NF.sh
