@@ -6,7 +6,7 @@ This repository implements the [Glow](https://arxiv.org/abs/1807.03039) model us
 
 **To create histogram**:
 See [notebook](Do_deep_generative_models_know_what_they_dont_know.ipynb).
-Pretrained model (on CIFAR-10): [download](http://www.cs.ox.ac.uk/people/joost.vanamersfoort/glow.zip) (unzip before use).
+Pretrained model (on CIFAR-10): [download](https://www.cs.ox.ac.uk/people/joost.vanamersfoort/glow.zip) (unzip before use).
 
 Note this pretrained model was created using the `affine` coupling layer, so it does not work well for generative sampling (see qualitative vs quantitative models in the Glow paper). The pretrained model achieves 3.39 bpd, while the original paper gets 3.35. The difference between our pretrained model and the paper is that we use batch size 64 (single GPU) and the paper uses 512 (8 GPU).
 
