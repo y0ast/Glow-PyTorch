@@ -6,6 +6,76 @@ from PIL import Image
 import os
 import numpy as np
 
+
+def get_test_conditions(root_folder):
+    """
+    :return: (#test conditions,#classes) tensors
+    """
+    with open(os.path.join(root_folder, 'objects.json'), 'r') as file:
+        classes = json.load(file)
+    with open(os.path.join(root_folder, 'test.json'), 'r') as file:
+        test_conditions_list=json.load(file)
+
+    labels=torch.zeros(len(test_conditions_list),len(classes))
+    for i in range(len(test_conditions_list)):
+        for condition in test_conditions_list[i]:
+            labels[i,int(classes[condition])]=1.
+
+    return labels
+
+def get_new_test_conditions(root_folder):
+    """
+    :return: (#test conditions,#classes) tensors
+    """
+    with open(os.path.join(root_folder, 'objects.json'), 'r') as file:
+        classes = json.load(file)
+    with open(os.path.join(root_folder, 'new_test.json'), 'r') as file:
+        test_conditions_list=json.load(file)
+
+    labels=torch.zeros(len(test_conditions_list),len(classes))
+    for i in range(len(test_conditions_list)):
+        for condition in test_conditions_list[i]:
+            labels[i,int(classes[condition])]=1.
+
+    return labels
+
+class CLEVRDataset(data.Dataset):
+    def __init__(self, root_folder, img_folder):
+        """
+        :param img_path: file of training images
+        :param json_path: train.json
+        """
+        self.img_path = img_folder
+        self.max_objects=0
+        with open(os.path.join(root_folder, 'objects.json'), 'r') as file:
+            self.classes = json.load(file)
+        self.numclasses=len(self.classes)
+        self.img_names=[]
+        self.img_conditions=[]
+        with open(os.path.join(root_folder, 'train.json'), 'r') as file:
+            dict=json.load(file)
+            for img_name,img_condition in dict.items():
+                self.img_names.append(img_name)
+                self.max_objects=max(self.max_objects,len(img_condition))
+                self.img_conditions.append([self.classes[condition] for condition in img_condition])
+        self.transformations=transforms.Compose([transforms.Resize((64,64)),transforms.ToTensor(),transforms.Normalize((0.5,0.5,0.5),(0.5,0.5,0.5))])
+
+
+    def __len__(self):
+        return len(self.img_names)
+
+    def __getitem__(self, index):
+        img=Image.open(os.path.join(self.img_path,self.img_names[index])).convert('RGB')
+        img=self.transformations(img)
+        condition=self.int2onehot(self.img_conditions[index])
+        return img,condition
+
+    def int2onehot(self,int_list):
+        onehot=torch.zeros(self.numclasses)
+        for i in int_list:
+            onehot[i]=1.
+        return onehot
+
 def get_CelebA_data(root_folder):
     img_list = os.listdir(os.path.join(root_folder, 'CelebA-HQ-img'))
     label_list = []

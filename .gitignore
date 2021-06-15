@@ -1,7 +1,7 @@
 data
 output
 
-
+wandb/
 logs/
 .flake8
 __pycache__
@@ -16,6 +16,7 @@ __pycache__/
 *.so
 *.pptx#
 *logs/
+*logs_task1/
 
 data/
 
