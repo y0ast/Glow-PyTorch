@@ -90,7 +90,7 @@ def main(
 ):
 
     device = "cpu" if (not torch.cuda.is_available() or not cuda) else "cuda:0"
-    wandb.init(project='DLP_lab7_task1_cGlow')
+    wandb.init(project=args.dataset)
 
     check_manual_seed(seed)
 
@@ -128,7 +128,6 @@ def main(
     model = model.to(device)
     optimizer = optim.Adamax(model.parameters(), lr=lr, weight_decay=5e-5)
 
-
     lr_lambda = lambda epoch: min(1.0, (epoch + 1) / warmup)  # noqa
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
 
@@ -143,7 +142,7 @@ def main(
         if y_condition:
             y = y.to(device)
             z, nll, y_logits = model(x, y)
-            ### x: torch.Size([batchsize, 3, 64, 64]); y: torch.Size([batchsize, 24]); z: torch.Size([batchsize, 12, 32, 32])
+            ### x: torch.Size([batchsize, 3, 64, 64]); y: torch.Size([batchsize, 24]); z: torch.Size([batchsize, 48, 8, 8])
             losses = compute_loss_y(nll, y_logits, y_weight, y, multi_class)
         else:
             z, nll, y_logits = model(x, None)
@@ -236,13 +235,14 @@ def main(
             model.eval()
             with torch.no_grad():
                 test_conditions = get_test_conditions(args.dataroot).cuda()
-                z = torch.rand( ( len(test_conditions) , 12, 32, 32) ).cuda()
+                tmp_x = torch.rand( ( len(test_conditions) , image_shape[2], image_shape[0], image_shape[0]) ).cuda()
+                z, _, _ = model(tmp_x, test_conditions)
+                z = torch.randn(z.size()).cuda()
                 predict_x = model(y_onehot=test_conditions, z=z, temperature=1, reverse=True)
                 score = evaluator.eval(predict_x, test_conditions)
                 save_image(predict_x, args.output_dir+f"/Epoch{engine.state.epoch}_score{score:.3f}.png")
 
                 new_test_conditions = get_new_test_conditions(args.dataroot).cuda()
-                z = torch.rand( ( len(new_test_conditions) , 12, 32, 32) ).cuda()
                 new_predict_x = model(y_onehot=new_test_conditions, z=z, temperature=1, reverse=True)
                 new_score = evaluator.eval(new_predict_x, new_test_conditions)
                 save_image(predict_x, args.output_dir+f"/Epoch{engine.state.epoch}_newscore{new_score:.3f}.png")
