@@ -1,5 +1,21 @@
 # Glow
 
+## Start HW7 task2 training
+`source task2_run_train.sh`
+
+## task2 Conditional face generation
+`python3 task2_Conditional_face.py`
+![](images/task2_Conditional_face.png)
+
+## task2 Linear interpolation
+`python3 task2_interpolation.py`
+![](images/task2_interpolation.png)
+
+## task2 Attribute manipulation
+`python3 task2_Attribute_manipulation.py`
+![](images/task2_Attribute_manipulation.png)
+
+
 This repository implements the [Glow](https://arxiv.org/abs/1807.03039) model using PyTorch on the CIFAR-10 and SVHN dataset. We use the trained Glow to reproduce some of the results of the paper ["Do Deep Generative Models Know What They Don't Know?"](https://arxiv.org/abs/1810.09136):
 
 ![Histogram Glow - CIFAR10 and SVHN](images/histogram_glow_cifar_svhn.png)
@@ -13,8 +29,7 @@ Note this pretrained model was created using the `affine` coupling layer, so it 
 This code uses some layers and groundwork from [glow-pytorch](https://github.com/chaiyujin/glow-pytorch), but is more modular, extendable, faster, easier to read and supports training on CIFAR-10 and SVHN. There are fewer dependencies and a consistent interface for new datasets. Thanks to [Milad](https://github.com/mi-lad) for comments and help with debugging.
 
 
-## Start HW7 training
-`source run_hw7_NF.sh`
+
 
 
 ## Setup and run
