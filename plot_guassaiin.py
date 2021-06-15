@@ -54,8 +54,8 @@ def compute_nll(dataset, model, dataloader):
 if __name__ == "__main__":
     device = torch.device("cuda")
 
-    output_folder = '0614_2116_logs/'
-    model_name = 'glow_checkpoint_18750.pt'
+    output_folder = '0614_0641_logs/'
+    model_name = 'glow_checkpoint_75000.pt'
 
     with open(output_folder + 'hparams.json') as json_file:
         hparams = json.load(json_file)

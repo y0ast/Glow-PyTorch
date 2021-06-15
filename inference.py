@@ -34,8 +34,8 @@ from utils import save_image
 if __name__ == "__main__":
     device = torch.device("cuda")
 
-    output_folder = '0614_2116_logs/'
-    model_name = 'glow_checkpoint_18750.pt'
+    output_folder = '0614_0641_logs/'
+    model_name = 'glow_checkpoint_75000.pt'
 
     with open(output_folder + 'hparams.json') as json_file:
         hparams = json.load(json_file)
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     image_shape = (64,64,3)
     num_classes = 40
     dataset_test = CelebALoader(root_folder=hparams['dataroot']) #'/home/yellow/deep-learning-and-practice/hw7/dataset/task_2/'
-    test_loader = DataLoader(dataset_test,batch_size=hparams['batch_size'],shuffle=True,drop_last=True)
+    test_loader = DataLoader(dataset_test,batch_size=32,shuffle=False,drop_last=True)
     model = Glow(image_shape, hparams['hidden_channels'], hparams['K'], hparams['L'], hparams['actnorm_scale'],
                  hparams['flow_permutation'], hparams['flow_coupling'], hparams['LU_decomposed'], num_classes,
                  hparams['learn_top'], hparams['y_condition'])
