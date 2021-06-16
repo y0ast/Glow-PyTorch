@@ -57,6 +57,16 @@ def compute_loss_y(nll, y_logits, y_weight, y, multi_class, reduction="mean"):
     return losses
 
 
+def norm_ip(img, min, max):
+    img.clamp_(min=min, max=max)
+    img.add_(-min).div_(max - min + 1e-5)
+
+def norm_range(t, range):
+    if range is not None:
+        norm_ip(t, range[0], range[1])
+    else:
+        norm_ip(t, float(t.min()), float(t.max()))
+
 def main(
     dataset,
     dataroot,
@@ -239,13 +249,17 @@ def main(
                 z, _, _ = model(tmp_x, test_conditions)
                 z = torch.randn(z.size()).cuda()
                 predict_x = model(y_onehot=test_conditions, z=z, temperature=1, reverse=True)
+                for t in predict_x:  # loop over mini-batch dimension
+                    norm_range(t, None)
                 score = evaluator.eval(predict_x, test_conditions)
                 save_image(predict_x, args.output_dir+f"/Epoch{engine.state.epoch}_score{score:.3f}.png")
 
                 new_test_conditions = get_new_test_conditions(args.dataroot).cuda()
                 new_predict_x = model(y_onehot=new_test_conditions, z=z, temperature=1, reverse=True)
+                for t in new_predict_x:  # loop over mini-batch dimension
+                    norm_range(t, None)
                 new_score = evaluator.eval(new_predict_x, new_test_conditions)
-                save_image(predict_x, args.output_dir+f"/Epoch{engine.state.epoch}_newscore{new_score:.3f}.png")
+                save_image(new_predict_x, args.output_dir+f"/Epoch{engine.state.epoch}_newscore{new_score:.3f}.png")
 
                 losses = ", ".join([f"{key}: {value:.2f}" for key, value in engine.state.metrics.items()])
                 print(f"Iter: {engine.state.iteration}  score:{score:.3f} newscore:{new_score:.3f} {losses}")
