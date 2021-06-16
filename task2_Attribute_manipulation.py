@@ -120,4 +120,4 @@ if __name__ == "__main__":
 		### generate_x_list size: torch.Size([N_attribute*N_interpolation, 3, 64, 64])
 
 
-		save_image(generate_x_list, 'images/task2_Attribute_manipulation.png')
+		save_image(generate_x_list, 'images/task2_Attribute_manipulation.png', normalize=True)

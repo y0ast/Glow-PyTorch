@@ -91,20 +91,5 @@ if __name__ == "__main__":
         print(predict_x.size())
         for k in range(len(predict_x)): interpolation_result.append(predict_x[k])
 
-    # interpolation_result = torch.Tensor(interpolation_result).cuda()
-    # print('interpolation_result',interpolation_result.size())
-    # interpolation_result.resize_((N*len(face_pair), 3, 64, 64))
-    save_image(interpolation_result, 'task2_interpolation.png')
-    # results = []
-    # for i in range(8):
-    #     y_manipulation = y
-    #     y_manipulation[0][9] = i * 0.125
-    #     y_manipulation[0][39] = i * 0.125
-    #     with torch.no_grad():
-    #         z, bpd, y_logits = model(x,y_manipulation)  # return: z, bpd, y_logits
-    #         predict_x = model(y_onehot=y_manipulation, z=z, temperature=0.5, reverse=True)
-    #         results.append(predict_x[0])
-    # save_image(results, 'manipulation.png')
-    #
-    # print('y=',y)
-    # save_image(x, 'origin_x.png')
+
+    save_image(interpolation_result, 'task2_interpolation.png', normalize=True)

@@ -72,4 +72,4 @@ if __name__ == "__main__":
 			y[attribute] = yes
 			predict_x = model(y_onehot=y.cuda(), z=z.cuda(), temperature=1, reverse=True)
 			generate_x_list = torch.cat((generate_x_list,predict_x), 0)
-	save_image(generate_x_list, 'images/task2_Conditional_face.png')
+	save_image(generate_x_list, 'images/task2_Conditional_face.png',normalize=True)
