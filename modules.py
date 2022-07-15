@@ -349,12 +349,12 @@ class InvertibleConv1x1(nn.Module):
             else:
                 weight = self.weight
         else:
-            self.l_mask = self.l_mask.to(input.device)
-            self.eye = self.eye.to(input.device)
+            self.l_mask = self.l_mask.to(self.lower.device)
+            self.eye = self.eye.to(self.lower.device)
 
             lower = self.lower * self.l_mask + self.eye
 
-            u = self.upper * self.l_mask.transpose(0, 1).contiguous()
+            u = self.upper * self.l_mask.transpose(0, 1).contiguous().to(self.upper.device)
             u += torch.diag(self.sign_s * torch.exp(self.log_s))
 
             dlogdet = torch.sum(self.log_s) * h * w
@@ -368,7 +368,7 @@ class InvertibleConv1x1(nn.Module):
             else:
                 weight = torch.matmul(self.p, torch.matmul(lower, u))
 
-        return weight.view(self.w_shape[0], self.w_shape[1], 1, 1), dlogdet
+        return weight.view(self.w_shape[0], self.w_shape[1], 1, 1).to(input.device), dlogdet.to(input.device)
 
     def forward(self, input, logdet=None, reverse=False):
         """
