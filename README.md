@@ -58,7 +58,6 @@ There are two notebooks available for evaluation:
 There are several possible extensions:
 
 - Multiclass conditional training
-- multiGPU
 - port over the [tests](https://github.com/chaiyujin/glow-pytorch/blob/master/test_modules.py)
 
 PRs for any of these would be very welcome. If you find any problem, feel free to make an [issue](https://github.com/y0ast/Glow-PyTorch/issues) too.
